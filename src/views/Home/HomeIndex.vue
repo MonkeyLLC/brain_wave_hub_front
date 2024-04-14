@@ -164,7 +164,7 @@ const searchHistoryList = async () => {
       value: item.query
     }
     searchHistoryItems.push(i)
-    console.log("搜索历史", searchHistoryItems)
+
   })
 
   //searchHistoryItems.value = res.data.items.slice(0, 5)
