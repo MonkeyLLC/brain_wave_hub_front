@@ -1,13 +1,16 @@
 <script setup>
 
 import AsideContainer from '@/views/Home/components/AsideContaniner.vue';
-import HeaderContainer from '@/views/Home/components/HeaderContainer.vue';
+import FooterComponent from '@/components/FooterComponent.vue';
 import PaperItem from '@/views/Home/components/PaperItem.vue';
-import {hot, recordSearch,getSearchList} from "@/apis/history.js";
+import {hot, recordSearch, getSearchList} from "@/apis/history.js";
 import {getTotal, getSearchResult} from "@/apis/search.js";
-
+import {isCollect} from "@/apis/collect.js";
 import {ref, onMounted} from 'vue';
 import router from "@/router/index.js";
+import {useTransition} from '@vueuse/core'
+import HeaderComponent from "@/views/Home/components/HeaderComponent.vue";
+
 
 const query = ref('')
 
@@ -33,6 +36,14 @@ const getHotData = async () => {
   searchResult.value = res.data
   searchTotal.value = res.data.total
   paperList.value = res.data.hits
+  const isCollectedMap = await isCollected()
+  console.log("isCollectedMap", isCollectedMap)
+
+  paperList.value.forEach((item, index) => {
+
+    item.isCollected = isCollectedMap[item.id]
+
+  })
 }
 
 onMounted(() => {
@@ -40,6 +51,7 @@ onMounted(() => {
   getHotQuery()
   getTotalData()
   getHotData()
+
   restaurants.value = searchHistoryItems
 
 })
@@ -69,8 +81,6 @@ const docTypeLogoPath = (paper) => {
   return docTypeLogoPath;
 }
 
-import {useTransition} from '@vueuse/core'
-import HeaderComponent from "@/views/Home/components/HeaderComponent.vue";
 
 const source = ref(0)
 source.value = 39
@@ -144,7 +154,7 @@ const setIsShow = () => {
 }
 
 const record = async (query) => {
-   await recordSearch(query)
+  await recordSearch(query)
 }
 
 const hotQuery = ref([])
@@ -161,23 +171,36 @@ const searchHistoryList = async () => {
 
   res.data.items.slice(0, 5).forEach(item => {
     let i = {
-      value: item.query
+      value: item
     }
     searchHistoryItems.push(i)
 
   })
 
-  //searchHistoryItems.value = res.data.items.slice(0, 5)
   return searchHistoryItems
 }
-</script>
 
+// 取到searchHistoryItems的中每一个元素的集合
+const isCollected = async () => {
+  let paperIds = []
+  paperList.value.forEach(item => {
+    paperIds.push(item.id)
+  })
+  const res = await isCollect(paperIds)
+  console.log("res", res.data)
+  return res.data
+
+  //console.log("paperIds", paperIds)
+}
+
+
+</script>
 
 <template>
   <div class="common-layout">
     <el-container>
       <el-header class="header-container" height="100">
-<!--        <header-container></header-container>-->
+        <!--        <header-container></header-container>-->
         <header-component @isShowLogin="getIsLogin">
           <template #content>
             <div class="nav">
@@ -220,7 +243,8 @@ const searchHistoryList = async () => {
                         placeholder="Please Input"
                         @select="handleSelect"
                     />
-                    <el-button @click="putToSearchResult(query)"><i style="transform: scale(1.5)" class="iconfont icon-sousuo"></i></el-button>
+                    <el-button @click="putToSearchResult(query)"><i style="transform: scale(1.5)"
+                                                                    class="iconfont icon-sousuo"></i></el-button>
                   </div>
 
                   <div class="hot">
@@ -228,14 +252,13 @@ const searchHistoryList = async () => {
                     <ul>
                       <span style="color: #f1ecec">热门搜索：</span>
                       <li v-for="item in hotQuery" :key="item" @click="putToSearchResult(item)">
-                        {{item}}
+                        {{ item }}
                       </li>
                     </ul>
 
                   </div>
 
                 </div>
-
 
 
                 <div class="history-search-box" v-show="isHistoryShow" @focus="isHistoryShow=true">
@@ -252,21 +275,16 @@ const searchHistoryList = async () => {
               <div class="right-box">
                 <div class="nav-list">
                   <div class="nav">
-                    <el-button
-                        class="select-button"
-                    ><i class="iconfont icon-shangchuan"></i><span style="margin: 10px 10px">上传</span></el-button>
+
+                    <button class="nav-bt">
+                      <i class="iconfont icon-shangchuan"></i><span>上传</span>
+                    </button>
                   </div>
 
-                  <div class="nav">
-                    <el-button
-                        class="select-button"
-                    ><i class="iconfont icon-huiyuan"></i><span style="margin: 10px 10px">会员</span></el-button>
-                  </div>
-
-                  <div class="nav">
-                    <el-button
-                        class="select-button"
-                    ><i class="iconfont icon-huiyuan"></i><span style="margin: 10px 10px">上传</span></el-button>
+                  <div class="nav" style="margin-top: 30px">
+                    <button class="nav-bt">
+                      <i class="iconfont icon-huiyuan"></i><span>会员</span>
+                    </button>
                   </div>
 
                 </div>
@@ -335,7 +353,7 @@ const searchHistoryList = async () => {
                     <div class="block text-center">
                       <el-carousel height="420px" motion-blur>
                         <el-carousel-item v-for="item in advImgs" :key="item"
-                                          :style="{ 'background-image': 'url(' + item + ')' }">
+                                          :style="{ 'background': 'url(' + item + ') no-repeat'}">
                           <h3 class="small justify-center" text="2xl"
                           >
                           </h3>
@@ -357,7 +375,11 @@ const searchHistoryList = async () => {
             </div>
 
           </el-main>
-          <el-footer>Footer</el-footer>
+          <el-footer height="150px">
+
+            <footer-component></footer-component>
+
+          </el-footer>
         </el-container>
       </el-container>
     </el-container>
@@ -365,6 +387,11 @@ const searchHistoryList = async () => {
 </template>
 
 <style scoped lang="less">
+/deep/ .el-footer {
+  width: 100%;
+  margin-bottom: 5%;
+}
+
 .main-wrapper {
   flex: 1;
   /* 让 main-wrapper 充满剩余的空间 */
@@ -396,11 +423,11 @@ const searchHistoryList = async () => {
 
     .home-main-content-top {
 
-      .hot{
-        ul{
+      .hot {
+        ul {
           display: flex;
 
-          li{
+          li {
             color: white;
             list-style: none;
             margin: 0 10px;
@@ -482,18 +509,26 @@ const searchHistoryList = async () => {
         height: 100%;
         width: 100%;
 
-        /deep/ .select-button {
-          margin-top: 20px;
-          background-color: #f2f2f2;
-          border-radius: 20px;
-          color: black;
+        .nav-bt {
+          padding: 8px 30px;
           text-align: center;
-          font-weight: 500;
-          font-size: 1.2rem;
-          width: 100%;
-          padding-left: 30px;
-          border: none;
+          font-size: 1.1rem;
+          border-radius: 20px;
+
+          span {
+            margin-left: 20px;
+          }
+
+          cursor: pointer;
         }
+
+        .nav-bt:active {
+          /* 过渡放大*/
+          transform: scale(1.1);
+          transition-duration: 0.1s;
+
+        }
+
 
         /deep/ .select-button:hover {
           background-color: rgba(190, 185, 185, 0.29);

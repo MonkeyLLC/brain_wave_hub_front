@@ -1,4 +1,6 @@
 <script setup>
+import {ElMessage} from "element-plus";
+
 const props = defineProps({
   paper: Object,
   docTypeLogoPath: String
@@ -6,6 +8,7 @@ const props = defineProps({
 import router from "@/router/index.js";
 import {events} from "@/bus/bus.js";
 import {useReaderRequest} from "@/stores/reader.js";
+import {collect,cancel} from "@/apis/collect.js";
 const readerRequestStore = useReaderRequest();
 const bus = events;
 
@@ -24,6 +27,34 @@ const viewPaper = (paper) => {
  //   name: name
  // })
   //console.log("点击查看详情传进的参数", id, name, path)
+}
+
+const collectHandle = async (id) => {
+  const res = await collect(id)
+  if (res.data) {
+    ElMessage({
+      message: '收藏成功',
+      type: 'success',
+    })
+    // 间隔一秒后刷新
+    setTimeout(() => {
+      location.reload()
+    }, 1000)
+  }
+}
+
+const cancelCollected = async (id) => {
+  const res = await cancel(id)
+  if (res.data) {
+    ElMessage({
+      message: '取消收藏成功',
+      type: 'success',
+    })
+    // 间隔一秒后刷新
+    setTimeout(() => {
+      location.reload()
+    }, 1000)
+  }
 }
 </script>
 
@@ -55,14 +86,24 @@ const viewPaper = (paper) => {
           <li><span style="font-size: 14px">日期</span>：&nbsp; {{ paper.upload_time }}</li>
           <li>作者：&nbsp; {{ paper.author.author }}</li>
           <li>浏览量：&nbsp; {{ paper.view_count }}</li>
-          <li>下载了：&nbsp; {{ paper.download_count }}</li>
+          <li>下载量：&nbsp; {{ paper.download_count }}</li>
         </ul>
 
       </div>
       <div class="operate">
-        <el-button type="primary" style="width: 100px; margin: 0" @click="viewPaper(paper)">查 看</el-button>
-        <el-button type="primary" style="width: 100px; margin: 0">加入购物车</el-button>
-        <p style="color: #f64d05">{{ paper.expense }}云币</p>
+        <button class="operate-bt" @click="viewPaper(paper)">
+          查看
+        </button>
+        <button class="operate-bt" @click="cancelCollected(paper.id)" style="background-color: #3498db" v-show="paper.isCollected">
+          已收藏
+        </button>
+
+        <button class="operate-bt" @click="collectHandle(paper.id)"  v-show="!paper.isCollected">
+          收藏
+        </button>
+<!--        <el-button type="primary" style="width: 100px; margin: 0" ">查 看</el-button>
+        <el-button type="primary" style="width: 100px; margin: 0">收藏</el-button>-->
+        <p style="color: #f64d05;margin-top: 0;margin-bottom: 0">{{ paper.expense }}云币</p>
       </div>
     </div>
   </div>
@@ -135,7 +176,20 @@ const viewPaper = (paper) => {
     }
 
     .operate {
-
+      .operate-bt{
+        width: 100px;
+        padding: 8px ;
+        border-radius: 10px;
+        border: none;
+        background-color: #0069ff;
+        color: white;
+        cursor: pointer;
+      }
+      .operate-bt:active {
+        background-color: #0053cc;
+        transition-duration: 0.1s;
+        scale: 1.05;
+      }
       height: 100%;
       display: flex;
       flex-direction: column;

@@ -46,6 +46,10 @@ const searchRequest = ref(
 export function getSearchResult(request) {
 
     if (request != null) {
+        if (!request.field){
+            request.field = field.value
+        }
+
         query.value = request.query
         page.value = request.page
         gradeCategory.value = request.gradeCategory
@@ -55,7 +59,6 @@ export function getSearchResult(request) {
 
         sort.value = sortMapping.hasOwnProperty(request.sort) ? sortMapping[request.sort] : null
         order.value = request.order
-
 
     }
 

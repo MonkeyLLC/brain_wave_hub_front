@@ -9,6 +9,7 @@ import DownloadHistoryView from "@/views/Personal/DownloadHistoryView.vue";
 import UserInfoView from "@/views/Personal/UserInfoView.vue";
 import MessageView from "@/views/Personal/MessageView.vue";
 import PersonalVipView from "@/views/Personal/PersonalVipView.vue";
+import CollectView from "@/views/Personal/CollectView.vue";
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -58,9 +59,9 @@ const router = createRouter({
                     component: MessageView
                 },
                 {
-                    path:'vip',
-                    name:'vip',
-                    component: PersonalVipView
+                    path:'collect',
+                    name:'collect',
+                    component: CollectView
                 }
             ]
         },

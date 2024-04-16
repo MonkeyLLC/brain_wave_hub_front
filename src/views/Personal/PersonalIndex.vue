@@ -25,6 +25,11 @@ const selectGroup = ref([
     value: 'info'
   },
   {
+    label: '我的收藏',
+    value: 'collect'
+
+  },
+  {
     label: '下载记录',
     value: 'history'
   },
@@ -32,7 +37,8 @@ const selectGroup = ref([
   {
     label: '通知中心',
     value: 'message'
-  }
+  },
+
 
 ])
 const circleUrl = ref('https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png')

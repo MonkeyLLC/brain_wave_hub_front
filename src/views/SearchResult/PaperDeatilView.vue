@@ -4,6 +4,11 @@ import {getImagePaths} from '@/apis/reader.js';
 import {useRoute} from "vue-router";
 import {useReaderRequest} from "@/stores/reader.js";
 import HeaderComponent from "@/views/Home/components/HeaderComponent.vue";
+import downloadFile from '@/apis/download.js'
+import {collect} from '@/apis/collect.js'
+import {isCollect} from "@/apis/collect.js";
+import {recordView} from "@/apis/history.js";
+import {ElMessage} from "element-plus";
 
 const readerRequestStore = useReaderRequest();
 
@@ -24,6 +29,8 @@ const getPaperDetail = async () => {
 }
 onMounted(() => {
   getPaperDetail();
+  isCollectHandle()
+  recordView(id)
 })
 
 const input = ref('');
@@ -32,6 +39,46 @@ const circleUrl = ref("https://uat.sciradar.com/img/logo-dark.c2967aad.svg")
 const isLoading = ref(true);
 const imageLoaded = () => {
   isLoading.value = false;
+}
+
+const download = async () => {
+  const res = await downloadFile(id)
+
+}
+const collectState = ref(false)
+const collectHandle = async () => {
+  await collect(id)
+  if (collectState.value) {
+    ElMessage({
+      message: '收藏成功',
+      type: 'success',
+    })
+  }
+
+}
+const paperIds = []
+const isCollectHandle = async () => {
+  paperIds.push(id)
+  const res = await isCollect(paperIds)
+
+  for (const key in res.data) {
+    console.log("key", key)
+    if (res.data.hasOwnProperty(key)) {
+      console.log("key", key, res.data[key])
+      collectState.value = res.data[key]
+      // 在这里处理键值对
+    }
+  }
+
+  console.log("isCollect", collectState.value)
+
+}
+
+const collected = () => {
+  ElMessage({
+    message: '已在收藏栏',
+    type: 'error',
+  })
 }
 </script>
 <template>
@@ -52,8 +99,21 @@ const imageLoaded = () => {
 
       </div>
       <div class="operate">
-        <el-button type="primary">下载</el-button>
-        <el-button type="primary">收藏</el-button>
+        <button class="operate-bt" @click="download">
+          <i class="iconfont icon-xiazai-"></i>
+          <span>下载</span>
+        </button>
+
+        <button class="operate-bt" style="background-color: #3498db" @click="collectHandle" v-show="!collectState">
+          <i class="iconfont icon-shoucang"></i>
+          <span>收藏</span>
+          {{ collectState }}
+        </button>
+
+        <button class="operate-bt" style="background-color: #3498db" v-show="collectState" @click="collected">
+          <i class="iconfont icon-shoucang"></i>
+          <span>已收藏</span>
+        </button>
       </div>
 
     </div>
@@ -71,17 +131,20 @@ const imageLoaded = () => {
         </div>
         <div class="suggest-body">
           <img src="@/assets/PDF.svg" alt="">
-          <span style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis">2023年湖南省郴州市永兴县树德中学九年级模拟考试数学试题</span>
+          <span
+              style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis">2023年湖南省郴州市永兴县树德中学九年级模拟考试数学试题</span>
         </div>
 
         <div class="suggest-body">
           <img src="@/assets/WORD.svg" alt="">
-          <span style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis">2023年湖南省郴州市永兴县树德中学九年级模拟考试数学试题</span>
+          <span
+              style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis">2023年湖南省郴州市永兴县树德中学九年级模拟考试数学试题</span>
         </div>
 
         <div class="suggest-body">
           <img src="@/assets/PPT.svg" alt="">
-          <span style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis">2023年湖南省郴州市永兴县树德中学九年级模拟考试数学试题</span>
+          <span
+              style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis">2023年湖南省郴州市永兴县树德中学九年级模拟考试数学试题</span>
         </div>
 
 
@@ -136,12 +199,32 @@ body {
 }
 
 .paper-detail-outer-box {
-  margin-top: 100px;
+  margin-top: 40px;
   background-color: #f2f2f2;
 
   .paper-detail-header-box {
     .operate {
       margin-top: 2%;
+
+      .operate-bt {
+        padding: 10px 20px;
+        border-radius: 20px;
+        border: none;
+        background-color: #0069ff;
+        color: white;
+        font-size: 1.1rem;
+        margin-right: 20px;
+
+        span {
+          margin-left: 6px;
+        }
+      }
+
+      .operate-bt:active {
+        background-color: #0053cc;
+        transition-duration: 0.1s;
+        scale: 1.05;
+      }
     }
 
     .description {
@@ -206,12 +289,13 @@ body {
         color: #e1450f;
         background-color: rgba(224, 218, 218, 0.62);
         border-radius: 20px;
+
         img {
           width: 15%;
         }
       }
 
-      .suggest-body{
+      .suggest-body {
         margin-top: 2%;
         height: 50px;
         width: 100%;
@@ -220,10 +304,12 @@ body {
         text-align: center;
 
         justify-content: flex-start;
+
         img {
           width: 10%;
         }
       }
+
       background-color: #ffffff;
       width: 15%;
       padding: 1%;

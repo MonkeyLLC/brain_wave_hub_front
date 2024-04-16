@@ -12,3 +12,11 @@ export function hot() {
 export function getSearchList() {
     return httpInstance.get('/history/search', {params: {page: 1}})
 }
+
+export function recordView(paperId) {
+    return httpInstance.put('/history/view', null, {
+        params: {
+            paperId
+        }
+    })
+}

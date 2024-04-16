@@ -6,6 +6,7 @@ import {getSearchResult} from "@/apis/search.js";
 import HeaderComponent from "@/views/Home/components/HeaderComponent.vue";
 import {hot} from "@/apis/history.js";
 import LoginIndex from "@/components/Login/LoginIndex.vue";
+import {isCollect} from "@/apis/collect.js";
 
 const input = ref('');
 const circleUrl = ref("https://uat.sciradar.com/img/logo-dark.c2967aad.svg")
@@ -57,77 +58,6 @@ const pageChane = async (page) => {
 let aggResult = {}
 
 
-const aggs = {
-  "省份": [
-    {
-      "key": "",
-      "count": 9,
-      "children": null
-    },
-    {
-      "key": "广东",
-      "count": 4,
-      "children": null
-    },
-    {
-      "key": "上海",
-      "count": 3,
-      "children": null
-    },
-    {
-      "key": "江苏",
-      "count": 3,
-      "children": null
-    },
-    {
-      "key": "北京",
-      "count": 2,
-      "children": null
-    },
-    {
-      "key": "江苏省",
-      "count": 2,
-      "children": null
-    },
-    {
-      "key": "浙江",
-      "count": 2,
-      "children": null
-    },
-    {
-      "key": "浙江省",
-      "count": 2,
-      "children": null
-    },
-    {
-      "key": "湖南",
-      "count": 2,
-      "children": null
-    },
-    {
-      "key": "重庆市",
-      "count": 2,
-      "children": null
-    }
-  ],
-  "年级分类": [
-    {
-      "key": "初中",
-      "count": 32,
-      "children": null
-    },
-    {
-      "key": "小学",
-      "count": 6,
-      "children": null
-    },
-    {
-      "key": "高中",
-      "count": 1,
-      "children": null
-    }
-  ]
-}
 let agsss = {}
 const getSearchResultData = async () => {
   const route = useRoute()
@@ -138,6 +68,13 @@ const getSearchResultData = async () => {
   total.value = res.data.total
 
   agsss = res.data.aggResult.aggs
+
+  const isCollectedMap = await isCollected()
+  paperList.value.forEach((item, index) => {
+
+    item.isCollected = isCollectedMap[item.id]
+
+  })
   //res.data.aggResult.aggs
   // console.log("得到的聚合对象", res.data.aggResult.aggs)
 
@@ -285,7 +222,17 @@ const setIsShow = () => {
   isShow.value = false
 }
 
+const isCollected = async () => {
+  let paperIds = []
+  paperList.value.forEach(item => {
+    paperIds.push(item.id)
+  })
+  const res = await isCollect(paperIds)
 
+  return res.data
+
+  //console.log("paperIds", paperIds)
+}
 </script>
 
 <template>
@@ -403,7 +350,7 @@ const setIsShow = () => {
                              @change="pageChane(currentPage)"/>
             </div>
           </el-main>
-          <el-footer>Footer</el-footer>
+          <el-footer height="150px"><footer-component></footer-component></el-footer>
         </el-container>
       </el-container>
     </el-container>
@@ -411,6 +358,12 @@ const setIsShow = () => {
 </template>
 
 <style lang="less" scoped>
+/deep/ .el-footer{
+  width: 100%;
+  margin-bottom: 5%;
+  margin-top: 20px;
+  padding: 0;
+}
 .login-box-outer {
   position: fixed;
   width: 100%;

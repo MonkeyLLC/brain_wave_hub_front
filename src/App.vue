@@ -24,5 +24,5 @@ const changeShow = () => {
 </script>
 
 <style lang="less" >
- @import url('//at.alicdn.com/t/c/font_4450034_1o4gya2jeds.css');
+ @import url('//at.alicdn.com/t/c/font_4450034_naknbiqrkzg.css');
 </style>
