@@ -10,13 +10,14 @@ import UserInfoView from "@/views/Personal/UserInfoView.vue";
 import MessageView from "@/views/Personal/MessageView.vue";
 import PersonalVipView from "@/views/Personal/PersonalVipView.vue";
 import CollectView from "@/views/Personal/CollectView.vue";
+import MyUploadView from "@/views/Upload/MyUploadedView.vue"
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
     routes: [
         {
             path: '/',
-            name: 'home',
+            name: '首页',
             component: HomeIndexVue
         },
         {
@@ -40,34 +41,42 @@ const router = createRouter({
         },
         {
             path: '/personal',
-            name: 'personal',
+            name: '个人中心',
             component: PersonalIndex,
             children:[
                 {
                     path: 'history',
-                    name: 'history',
+                    name: '下载记录',
                     component: DownloadHistoryView
                 },
                 {
                     path: 'info',
-                    name: 'info',
+                    name: '个人信息',
                     component: UserInfoView
                 },
                 {
                     path:'message',
-                    name:'message',
+                    name:'通知中心',
                     component: MessageView
                 },
                 {
                     path:'collect',
-                    name:'collect',
+                    name:'我的收藏',
                     component: CollectView
                 }
             ]
         },
         {
             path:'/upload',
-            component: () => import('@/views/Personal/Component/UploadAvatarComponent.vue')
+            name:'上传',
+            component: () => import('@/views/Upload/UploadView.vue'),
+            children:[
+                {
+                    path:'uploaded',
+                    name:'我的上传',
+                    component: MyUploadView
+                }
+            ]
         },
         {
             path:'/uploadPaper',

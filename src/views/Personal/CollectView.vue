@@ -1,36 +1,71 @@
 <script setup>
 
 import {ref, onMounted} from 'vue';
-import {collectedList} from "@/apis/collect.js";
-
-const radio1 = ref('New York')
-const circleUrl = ref('https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png')
+import {cancel, collectedList} from "@/apis/collect.js";
+import {downloadFile} from "@/apis/download.js";
+import {ElMessage} from "element-plus";
+import {useRouter} from "vue-router";
+const router = useRouter()
 
 const tableData = ref([])
 
-const calcWidth = (percentage) => {
-  return `calc(${percentage * 100}% - 16px)`; // 16px 为列的 padding
-}
-
 const currentPage = ref(1)
 const total = ref(100)
+
+
+const docTypes = ref([
+  '/src/assets/WORD1.svg',
+  '/src/assets/PDF.svg',
+  '/src/assets/PPT.svg',
+  '/src/assets/压缩包.svg',
+])
 
 const getCollectedList = async () => {
   const res = await collectedList(currentPage.value)
   total.value = res.data.total
   tableData.value = res.data.items
-  console.log(res)
+
+  tableData.value.forEach((item) => {
+
+    item.docTypePath = docTypes.value[item.docType - 1]
+
+  })
+
 }
 
 onMounted(() => {
   getCollectedList()
 })
+
+const putToPaperDetail = (id) => {
+  router.push({
+    path: `/paper/${id}`,
+  })
+  console.log("点击查看详情")
+}
+
+const downloadHandler = async (paperId) => {
+  await downloadFile(paperId)
+}
+
+const cancelCollected = async (id) => {
+  const res = await cancel(id)
+  if (res.data) {
+    ElMessage({
+      message: '取消收藏成功',
+      type: 'success',
+    })
+    // 间隔一秒后刷新
+    setTimeout(() => {
+      location.reload()
+    }, 1000)
+  }
+}
 </script>
 <template>
 
   <el-container>
     <el-main class="personal-main-outer-box">
-
       <div class="content">
 
         <el-row>
@@ -46,18 +81,19 @@ onMounted(() => {
                 <tr v-for="item in tableData" class="collect-tr" v-if="tableData.length>=1">
                   <td class="td-right">
                     <div class="suggest-body">
-                      <img src="@/assets/PDF.svg" alt="">
-                      <span style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis; margin-left: 2%">
+                      <img :src="item.docTypePath" alt="">
+                      <span
+                          @click="putToPaperDetail(item.paperId)">
                         {{ item.paperName }}
                       </span>
                     </div>
                   </td>
                   <td class="td-left"><!--{{ item.date }}-->
-                    <button class="td-left-bt" style="margin-right: 15px">下载</button>
-                    <button class="td-left-bt">取消收藏</button>
+                    <button class="td-left-bt" style="margin-right: 15px" @click="downloadHandler(item.paperId)">下载</button>
+                    <button class="td-left-bt" @click="cancelCollected(item.paperId)">移出</button>
                   </td>
                 </tr>
-                <el-empty description="description" v-else />
+                <el-empty description="description" v-else/>
               </table>
 
               <div class="col-bottom" v-if="tableData.length>=1">
@@ -163,6 +199,17 @@ onMounted(() => {
 
 
         .suggest-body {
+          span {
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            margin-left: 2%;
+            cursor: pointer;
+          }
+          span:hover {
+            color: #409EFF;
+          }
+
           margin-top: 2%;
           height: 50px;
           width: 100%;

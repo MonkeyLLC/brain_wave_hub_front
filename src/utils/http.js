@@ -3,7 +3,7 @@ import {useLogin} from "@/stores/login.js";
 // 创建axios实例
 const httpInstance = axios.create({
     baseURL: 'http://localhost:6601',
-    timeout: 5000,
+    timeout: 50000,
     withCredentials: true
 })
 
@@ -14,9 +14,9 @@ httpInstance.interceptors.request.use(config => {
 
 // axios响应式拦截器
 httpInstance.interceptors.response.use(res => res.data, e => {
-    console.log('e', e);
+    //console.log('e', e);
     let status = e.response.status;
-    console.log('status', status);
+   // console.log('status', status);
     if (status === 401) {
        // alert('登录过期，请重新登录');
       //  useLogin().loginState = false;

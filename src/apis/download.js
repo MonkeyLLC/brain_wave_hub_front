@@ -5,7 +5,7 @@ import {getSearchResult} from "@/apis/search.js";
 const fileType = ref('')
 const filename = ref('')
 
-export default async function downloadFile(paperId) {
+export async function downloadFile(paperId) {
 
     const searchRequest = ref({
         query: paperId,

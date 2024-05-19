@@ -20,3 +20,7 @@ export function recordView(paperId) {
         }
     })
 }
+
+export function getDownloadList() {
+    return httpInstance.get('/history/download', {params: {page: 1}})
+}

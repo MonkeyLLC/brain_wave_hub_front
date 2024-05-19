@@ -2,17 +2,63 @@
 import {ref, onMounted} from 'vue';
 import PaperItem from "@/views/Home/components/PaperItem.vue";
 import {useRoute} from 'vue-router'
+import {useRouter} from "vue-router";
 import {getSearchResult} from "@/apis/search.js";
 import HeaderComponent from "@/views/Home/components/HeaderComponent.vue";
-import {hot} from "@/apis/history.js";
-import LoginIndex from "@/components/Login/LoginIndex.vue";
 import {isCollect} from "@/apis/collect.js";
 
-const input = ref('');
-const circleUrl = ref("https://uat.sciradar.com/img/logo-dark.c2967aad.svg")
-
+const router = useRouter()
 const handleNodeClick = (data) => {
   console.log(data);
+  let select = '';
+  let version = '';
+  let gradeCategory = '';
+  let province = '';
+  let city = '';
+  let scene = '';
+  // 如果data.children不是undefined的话，说明点击的是父节点
+  if ('children' in data) {
+    select = data.label
+    return
+  } else {
+    select = data.parent;
+    console.log("点击的弗雷", select)
+    if (select === '教材版本') {
+      version = data.label.split(' ')[0];
+      localStorage.setItem('version', version);
+    } else if (select === '年级分类') {
+      gradeCategory = data.label.split(' ')[0];
+      localStorage.setItem('gradeCategory', gradeCategory);
+    } else if (select === '省份') {
+      province = data.label.split(' ')[0];
+      localStorage.setItem('province', province);
+    } else if (select === '城市') {
+      city = data.label.split(' ')[0];
+      localStorage.setItem('city', city);
+    } else if (select === '适用场景') {
+      scene = data.label.split(' ')[0];
+      localStorage.setItem('scene', scene);
+    }
+  }
+
+// 解析路由地址
+  const resolvedRoute = router.resolve({
+    path: '/result',
+    query: {
+      query: searchRequest.value.query,
+      gradeCategory: gradeCategory,
+      version: version,
+      province: province,
+      city: city,
+      scene: scene
+      //gradeCategory: gradeCategory
+    }
+  });
+
+  // 在新窗口中打开路由
+  window.open(resolvedRoute.href, '_blank');
+
+
 };
 
 const searchRequest = ref({
@@ -21,17 +67,17 @@ const searchRequest = ref({
   sort: '综合',
   order: 'DESC',
   gradeCategory: '',
+  version: null,
+  province: null,
+  city: null,
+  scene: null,
 })
 
 const docTypes = ref([
-  'src/assets/WORD.svg',
+  'src/assets/WORD2.svg',
   'src/assets/PDF.svg',
   'src/assets/PPT.svg',
   'src/assets/压缩包.svg',
-  //'https://zhiyun-resource-service.oss-cn-beijing.aliyuncs.com/979017f6aa873b299bace98df0014cd5.svg',
-  //'https://zhiyun-resource-service.oss-cn-beijing.aliyuncs.com/84a456f177096666f143b8b1b7126383.svg',
-  //'https://zhiyun-resource-service.oss-cn-beijing.aliyuncs.com/3ed1611b9955dd41187c1744497141bd.svg',
-  //'https://zhiyun-resource-service.oss-cn-beijing.aliyuncs.com/06583b8d3a2c0bf89621b4f852063401.svg'
 ])
 
 const docTypeLogoPath = (paper) => {
@@ -61,8 +107,20 @@ let aggResult = {}
 let agsss = {}
 const getSearchResultData = async () => {
   const route = useRoute()
-  searchRequest.value.query = route.query.query
-  searchRequest.value.gradeCategory = route.query.gradeCategory
+  //searchRequest.value.query = route.query.query
+  //searchRequest.value.gradeCategory = route.query.gradeCategory
+  //searchRequest.value.version = route.query.version
+  //searchRequest.value.province = route.query.province
+  //searchRequest.value.city = route.query.city
+  //searchRequest.value.scene = route.query.scene
+  searchRequest.value.query = localStorage.getItem('query')
+  searchRequest.value.gradeCategory = localStorage.getItem('gradeCategory')
+  searchRequest.value.version = localStorage.getItem('version')
+  searchRequest.value.province = localStorage.getItem('province')
+  searchRequest.value.city = localStorage.getItem('city')
+  searchRequest.value.scene = localStorage.getItem('scene')
+
+
   const res = await getSearchResult(searchRequest.value)
   paperList.value = res.data.hits
   total.value = res.data.total
@@ -101,10 +159,14 @@ const fetchData = async () => {
 
           obj.label = key
           value.forEach((item) => {
-            obj.children.push({
-              label: item.key,
-              count: item.count
-            })
+            if (item.key !== null && item.key.trim() !== '') {
+              obj.children.push({
+                label: item.key + '  (' + item.count + ')',
+                count: item.count,
+                parent: key,
+              })
+            }
+
           })
           objs.value.push(obj)
           // console.log(key, value)
@@ -113,9 +175,6 @@ const fetchData = async () => {
         isloading.value = false
       }
   )
-
-
-  // 在这里执行其他需要使用objs的操作
 
 }
 
@@ -191,7 +250,7 @@ const executeSort = async () => {
 // 点击排序按钮时调用的函数
 let clickCount = 0;
 const handleClickSort = (selectedSort) => {
-  console.log(selectedSort);
+  // console.log(selectedSort);
   sort.value = selectedSort;
   /* if (sort.value === selectedSort) {
      clickCount++; // 累加点击次数
@@ -214,7 +273,7 @@ const docTypeSelect2 = ref(false)
 const isShow = ref(false)
 
 const getIsLogin = (sonData) => {
-  console.log("接收到的sonData", sonData)
+  //console.log("接收到的sonData", sonData)
   isShow.value = sonData
 }
 
@@ -231,16 +290,10 @@ const isCollected = async () => {
 
   return res.data
 
-  //console.log("paperIds", paperIds)
 }
 </script>
 
 <template>
-
-  <!--  <div v-show="isShow" class="login-box-outer">
-  &lt;!&ndash;    <login-index :is-show="isShow"></login-index>&ndash;&gt;
-
-    </div>-->
 
   <div class="common-layout">
 
@@ -263,7 +316,8 @@ const isCollected = async () => {
                   :data="objs"
                   :props="defaultProps"
                   @node-click="handleNodeClick"
-              />
+                  :highlight-current="true"
+              ></el-tree>
             </div>
 
           </div>
@@ -341,16 +395,19 @@ const isCollected = async () => {
                 共计：<span>{{ total }}</span> 条
               </div>
             </div>
-            <div class="paper-list-container" v-for="(paper,index) in paperList" :key="index">
+            <div class="paper-list-container" v-for="(paper,index) in paperList" :key="index" v-if="paperList.length>0">
               <paper-item :paper="paper" :docTypeLogoPath="docTypeLogoPath(paper)"></paper-item>
             </div>
+            <el-empty description="description" v-else/>
 
-            <div class="bottom-pagination">
+            <div class="bottom-pagination" v-show="paperList.length>0">
               <el-pagination background layout="prev, pager, next" :total="total" v-model:current-page="currentPage"
                              @change="pageChane(currentPage)"/>
             </div>
           </el-main>
-          <el-footer height="150px"><footer-component></footer-component></el-footer>
+          <el-footer height="150px">
+            <footer-component></footer-component>
+          </el-footer>
         </el-container>
       </el-container>
     </el-container>
@@ -358,12 +415,13 @@ const isCollected = async () => {
 </template>
 
 <style lang="less" scoped>
-/deep/ .el-footer{
+/deep/ .el-footer {
   width: 100%;
   margin-bottom: 5%;
   margin-top: 20px;
   padding: 0;
 }
+
 .login-box-outer {
   position: fixed;
   width: 100%;

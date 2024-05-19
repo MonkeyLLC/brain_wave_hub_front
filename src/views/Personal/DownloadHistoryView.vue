@@ -1,62 +1,15 @@
 <script setup>
 
-import {ref} from 'vue';
+import {ref,onMounted} from 'vue';
+import {getDownloadList} from "@/apis/history.js";
+import {useRouter} from "vue-router";
+const router = useRouter()
+
 
 const radio1 = ref('New York')
 const circleUrl = ref('https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png')
 
-const tableData = [
-  {
-    date: '2016-05-03',
-    name: 'Tom',
-    address: 'No. 189, Grove St, Los Angeles',
-  },
-  {
-    date: '2016-05-02',
-    name: 'Tom',
-    address: 'No. 189, Grove St, Los Angeles',
-  },
-  {
-    date: '2016-05-04',
-    name: 'Tom',
-    address: 'No. 189, Grove St, Los Angeles',
-  },
-  {
-    date: '2016-05-01',
-    name: 'Tom',
-    address: 'No. 189, Grove St, Los Angeles',
-  },
-  {
-    date: '2016-05-08',
-    name: 'Tom',
-    address: 'No. 189, Grove St, Los Angeles',
-  },
-  {
-    date: '2016-05-06',
-    name: 'Tom',
-    address: 'No. 189, Grove St, Los Angeles',
-  },
-  {
-    date: '2016-05-07',
-    name: 'Tom',
-    address: 'No. 189, Grove St, Los Angeles',
-  },
-  {
-    date: '2016-05-07',
-    name: 'Tom',
-    address: 'No. 189, Grove St, Los Angeles',
-  },
-  {
-    date: '2016-05-07',
-    name: 'Tom',
-    address: 'No. 189, Grove St, Los Angeles',
-  },
-  {
-    date: '2016-05-07',
-    name: 'Tom',
-    address: 'No. 189, Grove St, Los Angeles',
-  },
-]
+const tableData = ref([])
 
 const calcWidth = (percentage) => {
   return `calc(${percentage * 100}% - 16px)`; // 16px 为列的 padding
@@ -64,6 +17,35 @@ const calcWidth = (percentage) => {
 
 const currentPage = ref(1)
 const total = ref(100)
+
+const docTypes = [
+  '/src/assets/WORD1.svg',
+  '/src/assets/PDF.svg',
+  '/src/assets/PPT.svg',
+  '/src/assets/压缩包.svg',
+]
+
+const getDownloadDataList = async () => {
+  const res = await getDownloadList(currentPage.value)
+  total.value = res.data.total
+  tableData.value = res.data.items
+
+  tableData.value.forEach((item) => {
+
+    item.docTypePath = docTypes[item.docType - 1]
+
+  })
+}
+
+const putToPaperDetail = (id) => {
+  router.push({
+    path: `/paper/${id}`,
+  })
+}
+
+onMounted(() => {
+  getDownloadDataList()
+})
 </script>
 <template>
 
@@ -87,12 +69,12 @@ const total = ref(100)
                   <td class="td-right">
                     <div class="suggest-body">
                       <img src="@/assets/PDF.svg" alt="">
-                      <span style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis; margin-left: 2%">
-                        2023年湖南省郴州市永兴县树德中学九年级模拟考试数学试题
+                      <span @click="putToPaperDetail(item.paperId)">
+                        {{ item.paperName }}
                       </span>
                     </div>
                   </td>
-                  <td class="td-left">{{ item.date }}</td>
+                  <td class="td-left">{{ item.createdAt }}</td>
                 </tr>
               </table>
 
@@ -175,6 +157,16 @@ const total = ref(100)
         }
 
         .suggest-body{
+          span {
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            margin-left: 2%;
+            cursor: pointer;
+          }
+          span:hover {
+            color: #409EFF;
+          }
           margin-top: 2%;
           height: 50px;
           width: 100%;

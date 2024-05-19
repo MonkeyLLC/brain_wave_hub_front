@@ -2,39 +2,52 @@
 import {ref, onMounted} from 'vue';
 import {getImagePaths} from '@/apis/reader.js';
 import {useRoute} from "vue-router";
-import {useReaderRequest} from "@/stores/reader.js";
 import HeaderComponent from "@/views/Home/components/HeaderComponent.vue";
-import downloadFile from '@/apis/download.js'
-import {collect} from '@/apis/collect.js'
+import {downloadFile} from '@/apis/download.js'
+import {cancel, collect} from '@/apis/collect.js'
 import {isCollect} from "@/apis/collect.js";
 import {recordView} from "@/apis/history.js";
 import {ElMessage} from "element-plus";
+import {searchById} from "@/apis/search.js";
 
-const readerRequestStore = useReaderRequest();
+
 
 const imagePaths = ref([]);
 const route = useRoute()
 let id = route.params.id
-const paper = readerRequestStore.paper;
-console.log("paper", paper.url, paper.name)
-let path = paper.url;
-let name = paper.name;
-const getPaperDetail = async () => {
 
+const paper = ref({})
+
+
+
+const getPaperDetail = async (paper) => {
+  //console.log(paper.value)
   const res = await getImagePaths(id, {
-    path: path,
-    name: name
+    path: paper.url,
+    name: paper.name
   })
   imagePaths.value = res.data;
 }
+
+const getSearchById = async () => {
+  const res = await searchById(id)
+
+  if (res.data.hits.length > 0) {
+
+      paper.value = res.data.hits[0]
+
+    await getPaperDetail(paper.value)
+
+  }
+
+}
 onMounted(() => {
-  getPaperDetail();
+  getSearchById()
+  /*getPaperDetail();*/
   isCollectHandle()
   recordView(id)
-})
 
-const input = ref('');
-const circleUrl = ref("https://uat.sciradar.com/img/logo-dark.c2967aad.svg")
+})
 
 const isLoading = ref(true);
 const imageLoaded = () => {
@@ -47,6 +60,14 @@ const download = async () => {
 }
 const collectState = ref(false)
 const collectHandle = async () => {
+  const loginState = ref(localStorage.getItem('loginState') === '1')
+  if (!loginState.value) {
+    ElMessage({
+      message: '请先登录',
+      type: 'warning',
+    })
+    return
+  }
   await collect(id)
   if (collectState.value) {
     ElMessage({
@@ -54,6 +75,10 @@ const collectHandle = async () => {
       type: 'success',
     })
   }
+  // 间隔一秒后刷新
+  setTimeout(() => {
+    location.reload()
+  }, 1000)
 
 }
 const paperIds = []
@@ -74,11 +99,17 @@ const isCollectHandle = async () => {
 
 }
 
-const collected = () => {
+
+const cancelCollected = async () => {
+  await cancel(id)
   ElMessage({
-    message: '已在收藏栏',
-    type: 'error',
+    message: '取消收藏成功',
+    type: 'success',
   })
+  // 间隔一秒后刷新
+  setTimeout(() => {
+    location.reload()
+  }, 1000)
 }
 </script>
 <template>
@@ -89,9 +120,9 @@ const collected = () => {
   <div class="paper-detail-outer-box">
     <div class="paper-detail-header-box">
       <div class="description">
-        <span class="title">{{ name }}</span>
+        <span class="title">{{ paper.name }}</span>
         <ul>
-          <li>作者：{{ paper.author.author }}</li>
+          <li v-if="paper.author">作者：{{ paper.author.author }}</li>
           <li>下载量：{{ paper.download_count }}</li>
           <li>浏览量：{{ paper.view_count }}</li>
           <li>时间：{{ paper.upload_time }}</li>
@@ -107,10 +138,10 @@ const collected = () => {
         <button class="operate-bt" style="background-color: #3498db" @click="collectHandle" v-show="!collectState">
           <i class="iconfont icon-shoucang"></i>
           <span>收藏</span>
-          {{ collectState }}
+
         </button>
 
-        <button class="operate-bt" style="background-color: #3498db" v-show="collectState" @click="collected">
+        <button class="operate-bt" style="background-color: #3498db" v-show="collectState" @click="cancelCollected">
           <i class="iconfont icon-shoucang"></i>
           <span>已收藏</span>
         </button>
@@ -136,7 +167,7 @@ const collected = () => {
         </div>
 
         <div class="suggest-body">
-          <img src="@/assets/WORD.svg" alt="">
+          <img src="../../assets/WORD1.svg" alt="">
           <span
               style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis">2023年湖南省郴州市永兴县树德中学九年级模拟考试数学试题</span>
         </div>

@@ -10,6 +10,7 @@ import {ref, onMounted} from 'vue';
 import router from "@/router/index.js";
 import {useTransition} from '@vueuse/core'
 import HeaderComponent from "@/views/Home/components/HeaderComponent.vue";
+import {ElMessage} from "element-plus";
 
 
 const query = ref('')
@@ -37,9 +38,7 @@ const getHotData = async () => {
   searchTotal.value = res.data.total
   paperList.value = res.data.hits
   const isCollectedMap = await isCollected()
-  console.log("isCollectedMap", isCollectedMap)
-
-  paperList.value.forEach((item, index) => {
+    paperList.value.forEach((item, index) => {
 
     item.isCollected = isCollectedMap[item.id]
 
@@ -47,6 +46,7 @@ const getHotData = async () => {
 }
 
 onMounted(() => {
+  initSearchRequest()
   searchHistoryList()
   getHotQuery()
   getTotalData()
@@ -55,7 +55,17 @@ onMounted(() => {
   restaurants.value = searchHistoryItems
 
 })
+const initSearchRequest = () =>{
+  localStorage.setItem('query', '')
+  localStorage.setItem('gradeCategory', '')
+  localStorage.setItem('version', '')
+  localStorage.setItem('province', '')
+  localStorage.setItem('city', '')
+  localStorage.setItem('scene', '')
+}
 const putToSearchResult = (query) => {
+
+  localStorage.setItem('query', query)
   record(query)
   router.push({
     name: 'result',
@@ -64,14 +74,10 @@ const putToSearchResult = (query) => {
 }
 
 const docTypes = ref([
-  'src/assets/WORD.svg',
+  'src/assets/WORD2.svg',
   'src/assets/PDF.svg',
   'src/assets/PPT.svg',
   'src/assets/压缩包.svg',
-  //'https://zhiyun-resource-service.oss-cn-beijing.aliyuncs.com/979017f6aa873b299bace98df0014cd5.svg',
-  //'https://zhiyun-resource-service.oss-cn-beijing.aliyuncs.com/84a456f177096666f143b8b1b7126383.svg',
-  //'https://zhiyun-resource-service.oss-cn-beijing.aliyuncs.com/3ed1611b9955dd41187c1744497141bd.svg',
-  //'https://zhiyun-resource-service.oss-cn-beijing.aliyuncs.com/06583b8d3a2c0bf89621b4f852063401.svg'
 ])
 
 const docTypeLogoPath = (paper) => {
@@ -145,7 +151,7 @@ const handleSelect = (item) => {
 const isShow = ref(false)
 
 const getIsLogin = (sonData) => {
-  console.log("接收到的sonData", sonData)
+ // console.log("接收到的sonData", sonData)
   isShow.value = sonData
 }
 
@@ -187,13 +193,27 @@ const isCollected = async () => {
     paperIds.push(item.id)
   })
   const res = await isCollect(paperIds)
-  console.log("res", res.data)
+  //console.log("res", res.data)
   return res.data
 
   //console.log("paperIds", paperIds)
 }
 
+const putToUpload = () => {
 
+
+  const loginState = ref(localStorage.getItem('loginState') === '1')
+  if (!loginState.value) {
+    ElMessage({
+      message: '请先登录',
+      type: 'success',
+    })
+    return;
+  }
+  router.push({
+    name: '上传'
+  })
+}
 </script>
 
 <template>
@@ -276,7 +296,7 @@ const isCollected = async () => {
                 <div class="nav-list">
                   <div class="nav">
 
-                    <button class="nav-bt">
+                    <button class="nav-bt" @click="putToUpload">
                       <i class="iconfont icon-shangchuan"></i><span>上传</span>
                     </button>
                   </div>

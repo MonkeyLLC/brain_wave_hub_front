@@ -18,3 +18,7 @@ export function importSingle(form, file) {
         }
     });
 }
+
+export function uploadRecord(name) {
+    return httpInstance.post(`/import/record`, name);
+}

@@ -4,39 +4,35 @@ import HeaderComponent from "@/views/Home/components/HeaderComponent.vue";
 import {ref, onMounted} from 'vue';
 import {useRouter} from 'vue-router';
 
-
 const radio1 = ref('个人信息')
 const router = useRouter()
 import {logout} from "@/apis/login.js";
 
 const selectPersonalView = (value) => {
   router.push({name: value})
-
 }
 
-
 onMounted(() => {
-  selectPersonalView('info')
-
+  selectPersonalView('个人信息')
 })
 const selectGroup = ref([
   {
     label: '个人信息',
-    value: 'info'
+    value: '个人信息'
   },
   {
     label: '我的收藏',
-    value: 'collect'
+    value: '我的收藏'
 
   },
   {
     label: '下载记录',
-    value: 'history'
+    value: '下载记录'
   },
 
   {
     label: '通知中心',
-    value: 'message'
+    value: '通知中心'
   },
 
 
@@ -47,7 +43,7 @@ const circleUrl = ref('https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726
 const logoutHandler = async () => {
   localStorage.setItem('loginState', '0')
   const res = await logout().then(res => {
-    router.push({name: 'home'})
+    router.push({name: '首页'})
     console.log("登出成功", res)
   })
 
@@ -96,9 +92,6 @@ const centerDialogVisible = ref(false)
               <el-radio-button :label="item.label" :value="item.value"
                                v-for="(item,index) in selectGroup" :key="index"
                                @change="selectPersonalView(item.value)"/>
-              <!--              <el-radio-button label="下载记录" value="history"/>
-                            <el-radio-button label="会员权益" value="member"/>
-                            <el-radio-button label="通知中心" value="message"/>-->
             </el-radio-group>
           </div>
 

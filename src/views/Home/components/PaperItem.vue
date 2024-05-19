@@ -9,27 +9,26 @@ import router from "@/router/index.js";
 import {events} from "@/bus/bus.js";
 import {useReaderRequest} from "@/stores/reader.js";
 import {collect,cancel} from "@/apis/collect.js";
+import {ref} from "vue";
 const readerRequestStore = useReaderRequest();
 const bus = events;
 
 const viewPaper = (paper) => {
-  //console.log("点击查看详情传进的参数", paper.id)
-  let id = paper.id
-  let name = paper.name
-  let path = paper.url
   router.push({
-    path: `/paper/${id}`,
+    path: `/paper/${paper.id}`,
   })
 
-  readerRequestStore.setReaderRequest(paper)
- // bus.emit('readerRequest', {
- //   path: path,
- //   name: name
- // })
-  //console.log("点击查看详情传进的参数", id, name, path)
 }
 
 const collectHandle = async (id) => {
+  const loginState = ref(localStorage.getItem('loginState') === '1')
+  if (!loginState.value) {
+    ElMessage({
+      message: '请先登录',
+      type: 'warning',
+    })
+    return
+  }
   const res = await collect(id)
   if (res.data) {
     ElMessage({
@@ -101,8 +100,6 @@ const cancelCollected = async (id) => {
         <button class="operate-bt" @click="collectHandle(paper.id)"  v-show="!paper.isCollected">
           收藏
         </button>
-<!--        <el-button type="primary" style="width: 100px; margin: 0" ">查 看</el-button>
-        <el-button type="primary" style="width: 100px; margin: 0">收藏</el-button>-->
         <p style="color: #f64d05;margin-top: 0;margin-bottom: 0">{{ paper.expense }}云币</p>
       </div>
     </div>

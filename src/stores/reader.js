@@ -14,7 +14,7 @@ export const useReaderRequest = defineStore('readerRequest', () => {
        //name.value = paper.name
        //path.value = paper.path
         this.paper = paper
-        console.log('setReaderRequest11111111111', this.paper)
+       // console.log('setReaderRequest11111111111', this.paper)
         return paper
     }
 

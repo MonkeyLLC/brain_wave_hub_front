@@ -80,6 +80,8 @@ const middleGrade = ['语文', '数学', '英语', '物理', '化学', '生物',
 const highGrade = ['语文', '数学', '英语', '物理', '化学', '生物', '历史', '地理', '政治'];
 
 const putToSearch = (item) => {
+  localStorage.setItem('gradeCategory', radio1.value)
+  localStorage.setItem('query', item)
   router.push({
     name: 'result', query: {
       query: item,

@@ -62,7 +62,6 @@ const isLoginShow = ref(false)
 
 const emit = defineEmits(['isShowLogin'])
 
-/*const loginState = */
 
 const login = () => {
   isLoginShow.value = true
@@ -70,7 +69,6 @@ const login = () => {
   emit('isShowLogin', isLoginShow.value)
 }
 
-//console.log("获取到的SESSION", cookies.keys())
 
 function getAllCookies() {
   const cookies = document.cookie.split(';');
@@ -82,9 +80,6 @@ function getAllCookies() {
   return cookieMap;
 }
 
-// 获取所有的cookie
-/*const allCookies = getAllCookies();
-console.log(allCookies);*/
 
 const loginState = ref(localStorage.getItem('loginState') === '1')
 
@@ -102,16 +97,38 @@ const crumbs = ref([])
 
 const generateBreadcrumb = () => {
   const matchedRoutes = route.matched;
-  crumbs.value = matchedRoutes.map(route => ({
-    to: route.path,
-    label: route.name
-  }));
+
+  matchedRoutes.forEach(route => {
+
+    let routePath = route.path
+    let routeName = route.name
+    //如果数组里面存在了就不要push
+    if (crumbs.value.some(crumb => crumb.to === routePath)) {
+      return
+    }
+    crumbs.value.push(
+        {
+          to: routePath,
+          label: routeName
+        }
+    )
+  })
+
+
+  //console.log("route", route.matched)
+  //console.log("matchedRoutes", matchedRoutes)
+
+
+  //crumbs.value = matchedRoutes.map(route => ({
+  //  to: route.path,
+  //  label: route.name
+  //}));
 }
 
 const routerWatch = watch(route, generateBreadcrumb);
 
 const pushToPersonal = () => {
-  router.push({name: 'personal'})
+  router.push({name: '个人中心'})
 }
 </script>
 
@@ -133,7 +150,7 @@ const pushToPersonal = () => {
   </el-dialog>
 
   <el-header class="search_header_container">
-    <div class="logo"><a href=""><img src="https://uat.sciradar.com/img/logo-dark.c2967aad.svg" alt=""></a></div>
+    <div class="logo"><a href=""><img src="https://sciradar.com/img/logo-dark.c2967aad.svg" alt=""></a></div>
     <!--    <el-input v-model="input" placeholder="请输入关键词"></el-input>-->
     <!--    <el-autocomplete
             v-model="state"
@@ -160,7 +177,7 @@ const pushToPersonal = () => {
       <el-avatar :src="circleUrl" @click="pushToPersonal"/>
     </div>
     <div class="login-register" v-show="!loginState">
-<!--      <el-button class="el-button" type="primary" @click="login"><i class="iconfont icon-denglu"></i></el-button>-->
+      <!--      <el-button class="el-button" type="primary" @click="login"><i class="iconfont icon-denglu"></i></el-button>-->
       <button class="login-but" @click="login">
         登录
       </button>
@@ -193,7 +210,7 @@ const pushToPersonal = () => {
    right: 20px;
    top: 9px;*/
 
-  .login-but{
+  .login-but {
     border: solid 1px mediumpurple;
     color: mediumpurple;
     border-radius: 20px;

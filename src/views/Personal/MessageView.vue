@@ -1,10 +1,22 @@
 <script setup>
 
-import {ref} from 'vue';
-
+import {onMounted, ref} from 'vue';
+import {mesaages} from "@/apis/mesaage.js";
 
 const currentPage = ref(1)
 const total = ref(100)
+
+const messages = ref([])
+
+const getMessages = async () => {
+  const res = await mesaages(currentPage.value)
+  //console.log("res", res.data.messages)
+  messages.value = res.data.messages
+}
+
+onMounted(()=>{
+  getMessages()
+})
 </script>
 <template>
 
@@ -31,14 +43,14 @@ const total = ref(100)
 
           </div>-->
 
-          <el-col :span="24" v-for="i in 10" :key="i">
+          <el-col :span="24" v-for="item in messages" :key="item">
             <div class="col">
               <p>
-                <span>2021-09-09</span>
+                <span>{{item.createdAt}}</span>
               </p>
               <div class="message-content">
-                <p>尊敬的用户，您好！</p>
-                <p>您的订单已经发货，请注意查收！</p>
+                <p>{{item.title}}</p>
+                <p>{{item.content}}！</p>
               </div>
             </div>
           </el-col>
